@@ -1,10 +1,17 @@
 
 
 <div class="container">
-	<?php
-	$var_alcool = new Var_Bays("alcool");
-	$var_drogue = new Var_Bays("drogue");
-	$var_infarctus = new Var_Bays("infarctus");
+	<div class="row">
+	<h1> Projet RPC - Miage Dauphine</h1>
+	<hr>
+
+	</div>
+	<div class="row">
+	<div class="col-lg-3">
+		<?php
+	$var_alcool 	= new Var_Bays("alcool");
+	$var_drogue 	= new Var_Bays("drogue");
+	$var_infarctus 	= new Var_Bays("infarctus");
 	$var_infarctus->addParent("alcool");
 	$var_infarctus->addParent("drogue");
 	
@@ -32,7 +39,10 @@
 	
 	
 	?>
-	<div class="row">
+
+
+	</div>
+
 		<div class="col-lg-6 ">
 			<table class="table">
 				<thead>
@@ -59,6 +69,21 @@
 							<td><input <?php if(isset($_POST["infarctus"])&&$_POST["infarctus"]=="vrai")    echo " checked " ?>name="infarctus" value="vrai" required="required"  type="radio"></td>
 							<td><input <?php if(isset($_POST["infarctus"])&&$_POST["infarctus"]=="faux")    echo " checked " ?>name="infarctus" value="faux" type="radio"></td>
 							<td><input <?php if(isset($_POST["infarctus"])&&$_POST["infarctus"]=="inconnu") echo " checked " ?>name="infarctus" value="inconnu" type="radio"></td>
+						</tr>
+						<tr><td>Mauvaise Condition de Route</td>
+							<td><input <?php if(isset($_POST["mauvaiseroute"])&&$_POST["mauvaiseroute"]=="vrai")    echo " checked " ?>name="mauvaiseroute" value="vrai" required="required"  type="radio"></td>
+							<td><input <?php if(isset($_POST["mauvaiseroute"])&&$_POST["mauvaiseroute"]=="faux")    echo " checked " ?>name="mauvaiseroute" value="faux" type="radio"></td>
+							<td><input <?php if(isset($_POST["mauvaiseroute"])&&$_POST["mauvaiseroute"]=="inconnu") echo " checked " ?>name="mauvaiseroute" value="inconnu" type="radio"></td>
+						</tr>
+						<tr><td>Pluie</td>
+							<td><input <?php if(isset($_POST["pluie"])&&$_POST["pluie"]=="vrai")    echo " checked " ?>name="pluie" value="vrai" required="required"  type="radio"></td>
+							<td><input <?php if(isset($_POST["pluie"])&&$_POST["pluie"]=="faux")    echo " checked " ?>name="pluie" value="faux" type="radio"></td>
+							<td><input <?php if(isset($_POST["pluie"])&&$_POST["pluie"]=="inconnu") echo " checked " ?>name="pluie" value="inconnu" type="radio"></td>
+						</tr>
+						<tr><td>Accident</td>
+							<td><input <?php if(isset($_POST["accident"])&&$_POST["accident"]=="vrai")    echo " checked " ?>name="accident" value="vrai" required="required"  type="radio"></td>
+							<td><input <?php if(isset($_POST["accident"])&&$_POST["accident"]=="faux")    echo " checked " ?>name="accident" value="faux" type="radio"></td>
+							<td><input <?php if(isset($_POST["accident"])&&$_POST["accident"]=="inconnu") echo " checked " ?>name="accident" value="inconnu" type="radio"></td>
 						</tr>
 						
 				</tbody>
@@ -106,7 +131,25 @@
 						$i=$i+1;
 
 					}
-					echo ")=".$var_infarctus->getProbaCond(parse($_POST["recherche"],$var_en_cours));
+					echo ")=";
+					if($_POST["recherche"]=="infarctus"){
+						echo $var_infarctus->getProbaCond(parse($_POST["recherche"],$var_en_cours));
+					}
+					if($_POST["recherche"]=="alcool"){
+						if($_POST["infarctus"]=="inconnu"){
+							echo $var_alcool->getProbaVrai();
+						}
+						if($_POST["infarctus"]=="vrai"){
+							echo $var_alcool->getProbaVrai();
+						}
+						if($_POST["infarctus"]=="faux"){
+							echo $var_alcool->getProbaVrai();
+						}
+						
+					}
+					if($_POST["recherche"]=="drogue"){
+						echo $var_drogue->getProbaCond(parse($_POST["recherche"],$var_en_cours));
+					}
 					
 				}
 

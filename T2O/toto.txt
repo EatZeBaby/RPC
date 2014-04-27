@@ -1,0 +1,3 @@
+0.2
+
+Si "date" dans le champ, proposer un getDate('format')
