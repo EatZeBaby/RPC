@@ -7,6 +7,7 @@ function elim($req,$evidences){
 	$bdd = new PDO('mysql:host=localhost;dbname=rpc','root','root',array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
 	$variables=array();
 	$sommes=array();
+
 	unset($variables);
 	unset($sommes);
 	$reponse = $bdd->query('SELECT *  FROM Variable');
@@ -18,7 +19,10 @@ function elim($req,$evidences){
 	}
 	echo '</ul>';
 
-	// $variables contient la liste des variables du réseau
+	// $variables contient la liste des variables du réseau bayesien
+
+
+	
 	echo 'la requête est P('.$req.'|';
 	affiche_evidences($evidences);
 	echo ').<br>';
@@ -32,6 +36,19 @@ function elim($req,$evidences){
 	echo '<ul>';
 	// À ce stade, $sommes contient les variables "à sommer"
 
+	if(in_array($req, $evidences)){
+		echo "la requete est connue vraie dans les évidences.";
+		$resultat = 1;
+	}
+	elseif(in_array("-".$req, $evidences)){
+		echo "la requete est connue fausse dans les évidences.";
+		$resultat = 0;
+	}
+	else{
+
+		
+
+	}
 
 
 
@@ -54,7 +71,7 @@ function affiche_evidences($tab){
 function non_evidence($value,$evidences){
 	$res=true;
 	foreach ($evidences as $key => $val) {
-		if($val==$value){
+		if(($val==$value)||($val=='not'.$value)){
 			$res=false;
 		}
 		# code...
