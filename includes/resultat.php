@@ -1,63 +1,12 @@
 <?php
 
-	
-
-	function getVariables(){
-			$bdd = new PDO('mysql:host=localhost;dbname=rpc','root','root',array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
-			$variables=array();
-			
-			$reponse = $bdd->query('SELECT ID,slug  FROM Variable');
-			//echo "Liste des Variables : <ul>";
-			while($donnees = $reponse->fetch()){
-				
-				$tab_des_var[$donnees['ID']]=$donnees['slug'];
-				//echo '<li>'.$donnees['slug'].' : '.$donnees['nom'].'</li>';
-			}
-			return $tab_des_var;
-	}
-
 	$variables=getVariables();
-	
-	//global $probabilites;
 	$probabilites = getProba();
-
 	$table_des_probas_completes = constructTab();
-
-	function constructTab(){
-
-	}
-
-
 	$table_prete=testRequete();
 
-	function testRequete(){
-		$tab_des_evid=getEvidences($_POST);
-		$temp;
-		$tab_des_var;
-
-		$bdd = new PDO('mysql:host=localhost;dbname=rpc','root','root',array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
-			$variables=array();
-			
-			$reponse = $bdd->query('SELECT ID,slug  FROM Variable');
-			//echo "Liste des Variables : <ul>";
-			while($donnees = $reponse->fetch()){
-				
-				$tab_des_var[$donnees['ID']]=$donnees['slug'];
-				//echo '<li>'.$donnees['slug'].' : '.$donnees['nom'].'</li>';
-			}
-
-		foreach ($tab_des_var as $id => $var) {
-			foreach ($tab_des_evid as $evi => $valeur) {
-				
-				//$temp[$var]=
-
-			}
-		}
-		
-
-			
-
-	}
+	
+	
 	echo '<br>';
 	foreach ($_POST as $key => $value) {
 		echo $key.'   :        '.$value.'<br>';
@@ -65,70 +14,7 @@
 	
 
 
-	function getNumFromSlug($t){
-		
-		if($t=='AL'){return '1';}
-		if($t=='DR'){return '2';}
-		if($t=='IN'){return '3';}
-		if($t=='AC'){return '4';}
-		if($t=='MR'){return '5';}
-		if($t=='PL'){return '6';}
-	}
 	
-
-	function getProba(){
-			$bdd = new PDO('mysql:host=localhost;dbname=rpc','root','root',array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
-			$probabilites=array();
-			unset($probabilites);
-			$reponse = $bdd->query('SELECT *  FROM Probabilites');
-			//echo "Liste des probabilites : <ul>";
-			while($donnees = $reponse->fetch()){
-				//echo '<li>'.$donnees['slug'].' : '.$donnees['nom'].'</li>';
-				$probabilites[$donnees['nom']]=$donnees['valeur'];
-			}
-			return $probabilites;//*/
-
-	}
-
-
-	function getProbaOld(){
-
-			$bdd = new PDO('mysql:host=localhost;dbname=rpc','root','root',array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
-			$variables=array();
-			unset($variables);
-			$reponse = $bdd->query('SELECT *  FROM Variable');
-			//echo "Liste des Variables : <ul>";
-			while($donnees = $reponse->fetch()){
-				//echo '<li>'.$donnees['slug'].' : '.$donnees['nom'].'</li>';
-				$variables[$donnees['slug']]=$donnees['nom'];
-			}
-			
-			foreach ($variables as $slug => $value) {
-				
-				
-				$req = $bdd->prepare('SELECT X.slug  FROM Variable X
-										WHERE (SELECT Y.parent FROM Parente Y 
-												WHERE Y.fils=? AND X.ID=Y.parent)');
-				$v=getNumFromSlug($slug);
-				
-				$req->execute(array($v));
-				$temp=$slug;
-				$i=0;
-				while($parents = $req->fetch()){
-					if($i==0){
-						$temp=$temp. ' |';
-					}
-					$temp=$temp.' '.$parents[0];
-
-					$i=$i+1;
-				}
-				echo $temp .'<br>';//*/
-				
-			}
-
-
-	}
-
 ?>
 
 
@@ -243,23 +129,9 @@
 				foreach ($evidences as $slug => $valeur) {
 					
 				}
-
 				echo $resultat;
-				
-
-			}//*/
-
-
-			
+			}
 		}
-
-
-
-
-
-
-
-
 
 
 		function getRequete($tab){
@@ -289,7 +161,101 @@
 			return $res[0];
 				
 	}
+	function getVariables(){
+		$bdd = new PDO('mysql:host=localhost;dbname=rpc','root','root',array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
+		$variables=array();
+		
+		$reponse = $bdd->query('SELECT ID,slug  FROM Variable');
+		//echo "Liste des Variables : <ul>";
+		while($donnees = $reponse->fetch()){
+			
+			$tab_des_var[$donnees['ID']]=$donnees['slug'];
+			//echo '<li>'.$donnees['slug'].' : '.$donnees['nom'].'</li>';
+		}
+		return $tab_des_var;
+	}
+	function hasParents($var){
+		if (($var=='AL')||($var=='DR')||($var=='MR')||($var=='PL')){
+			return false;
+		}elseif(($var=='IN')||($var=='AC')){
+			return true;
+		}
+	}
 
+		function getTable($var){
+		$table=array();
+		$bdd = new PDO('mysql:host=localhost;dbname=rpc','root','root',array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
+		
+		if (! hasParents($var)){
+			
+			$req = $bdd->query('SELECT proba FROM '.$var);
+		
+			while($donnees = $req->fetch()){
+				
+				$table[$var]=$donnees['proba'];
+				$table['-'.$var]=1-$table[$var];//
+			
+			}
+			
+		}else{
+
+			if($var=='AC'){
+				$req = $bdd->query('SELECT proba,PL,MR,`IN` FROM AC');
+				
+				while($donnees = $req->fetch()){
+					$pl="PL";
+					$mr="MR";
+					$in="IN";
+					if($donnees['PL']==0){$pl="-AL";}
+					if($donnees['MR']==0){$mr="-MR";}
+					if($donnees['`IN`']==0){$in="-IN";}
+					
+					$v=$var.' '.$pl.' '.$mr.' '.$in;
+
+					$table[$v]=$donnees['proba'];
+					$table['-'.$v]=1-$table[$v];//
+				
+				}
+
+
+
+			}elseif($var=='IN'){
+				$req = $bdd->query('SELECT proba,AL,DR FROM `IN`');
+				
+				while($donnees = $req->fetch()){
+					$al="AL";
+					$dr="DR";
+					if($donnees['AL']==0){$al="-AL";}
+					if($donnees['DR']==0){$dr="-DR";}
+					
+					$v=$var.' '.$al.' '.$dr;
+
+					$table[$v]=$donnees['proba'];
+					$table['-'.$v]=1-$table[$v];//
+				
+				}
+
+			}
+
+		}
+		//var_dump($table);
+		//echo'<br>';
+		return $table;
+		
+
+	}
+	function constructTab(){
+		$var=getVariables();
+		$liste=array();
+
+		foreach ($var as $id => $slug) {
+			$liste[$slug]=getTable($slug);
+			//echo $id.':'.$slug."<br>";
+			//$liste[$slug]=1;
+		}
+		//var_dump($liste);
+		var_dump($liste);
+	}
 	function afficher_requete($tab){
 		$evidences=array();
 		foreach ($tab as $key => $value) {
@@ -312,6 +278,83 @@
 			}
 			echo ')=';
 	}
+	function getNumFromSlug($t){
+		
+		if($t=='AL'){return '1';}
+		if($t=='DR'){return '2';}
+		if($t=='IN'){return '3';}
+		if($t=='AC'){return '4';}
+		if($t=='MR'){return '5';}
+		if($t=='PL'){return '6';}
+	}
+	
+
+	function getProba(){
+			$bdd = new PDO('mysql:host=localhost;dbname=rpc','root','root',array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
+			$probabilites=array();
+			unset($probabilites);
+			$reponse = $bdd->query('SELECT *  FROM Probabilites');
+			//echo "Liste des probabilites : <ul>";
+			while($donnees = $reponse->fetch()){
+				//echo '<li>'.$donnees['slug'].' : '.$donnees['nom'].'</li>';
+				$probabilites[$donnees['nom']]=$donnees['valeur'];
+			}
+			return $probabilites;//*/
+
+	}
+
+
+	function getProbaOld(){
+
+			$bdd = new PDO('mysql:host=localhost;dbname=rpc','root','root',array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION));
+			$variables=array();
+			unset($variables);
+			$reponse = $bdd->query('SELECT *  FROM Variable');
+			//echo "Liste des Variables : <ul>";
+			while($donnees = $reponse->fetch()){
+				//echo '<li>'.$donnees['slug'].' : '.$donnees['nom'].'</li>';
+				$variables[$donnees['slug']]=$donnees['nom'];
+			}
+			
+			foreach ($variables as $slug => $value) {
+				
+				
+				$req = $bdd->prepare('SELECT X.slug  FROM Variable X
+										WHERE (SELECT Y.parent FROM Parente Y 
+												WHERE Y.fils=? AND X.ID=Y.parent)');
+				$v=getNumFromSlug($slug);
+				
+				$req->execute(array($v));
+				$temp=$slug;
+				$i=0;
+				while($parents = $req->fetch()){
+					if($i==0){
+						$temp=$temp. ' |';
+					}
+					$temp=$temp.' '.$parents[0];
+
+					$i=$i+1;
+				}
+				echo $temp .'<br>';//*/
+				
+			}
+
+
+	}
+	function testRequete(){
+		$tab_des_evid=getEvidences($_POST);
+		$temp;
+		$tab_des_var=getVariables();
+
+		foreach ($tab_des_var as $id => $var) {
+			foreach ($tab_des_evid as $evi => $valeur) {
+				
+				//$temp[$var]=
+
+			}
+		}
+	}
+
 	
 
 		
